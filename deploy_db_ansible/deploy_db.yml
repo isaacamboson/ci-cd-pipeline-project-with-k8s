@@ -1,0 +1,32 @@
+---
+  - name: "CliXX DB Deployment Ansible Playbook"
+    hosts: localhost
+    connection: local
+    become: False
+    vars:
+      instance_id: wordpressdbclixxjenkins
+      db_snapshot: wordpressdbclixx-snapshot
+      security_group: sg-029126963d349ab49
+    tasks:
+       - name: Restore DB from snapshot
+         local_action:
+           module: rds
+           command: restore
+           secret_key: '{{ secret_key }}'         #secret key for dev account, where rds needs to be restored
+           access_key: '{{ access_key }}'         #access key for dev account, where rds needs to be restored
+           snapshot: '{{ db_snapshot }}'
+           instance_name: '{{ instance_id }}'
+           region: us-east-1
+           wait: yes
+           instance_type: db.t2.small
+           wait_timeout: 1200
+
+       - name: Modify to add SG
+         local_action:
+           module: rds
+           command: modify
+           secret_key: '{{ secret_key }}'
+           access_key: '{{ access_key }}'
+           instance_name: '{{ instance_id }}'
+           region: us-east-1
+           vpc_security_groups: '{{ security_group }}'
